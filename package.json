@@ -1,6 +1,6 @@
 {
   "name": "aisim-adblocker",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Advanced ad blocker with tracker blocking, custom filters, and high performance",
   "scripts": {
     "dev": "npm run watch",

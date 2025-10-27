@@ -1,4 +1,5 @@
-// AISim AdBlocker - Popup Interface
+// AISim AdBlocker v2.0.0 - Popup Interface
+// Enhanced stability and error handling
 
 class AdBlockerPopup {
   constructor() {
@@ -6,18 +7,70 @@ class AdBlockerPopup {
     this.currentTab = null;
     this.currentDomain = null;
     this.isWhitelisted = false;
+    this.retryCount = 0;
+    this.maxRetries = 3;
+    this.refreshInterval = null;
+    this.isInitialized = false;
     
     this.init();
   }
 
   async init() {
-    await this.loadCurrentTab();
-    await this.loadStats();
-    this.render();
-    this.attachEventListeners();
+    if (this.isInitialized) {
+      return;
+    }
+
+    try {
+      await this.loadCurrentTab();
+      await this.loadStats();
+      this.render();
+      this.attachEventListeners();
+      
+      // Auto-refresh stats every 2 seconds with error handling
+      this.refreshInterval = setInterval(() => {
+        this.loadStats().catch(error => {
+          console.warn('AISim AdBlocker: Stats refresh failed:', error);
+        });
+      }, 2000);
+      
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('AISim AdBlocker: Popup initialization failed:', error);
+      this.retryCount++;
+      
+      if (this.retryCount < this.maxRetries) {
+        setTimeout(() => {
+          this.init();
+        }, 1000 * this.retryCount);
+      } else {
+        this.showErrorState();
+      }
+    }
+  }
+
+  showErrorState() {
+    const root = document.getElementById('root');
+    root.innerHTML = `
+      <div class="popup-container">
+        <div class="header">
+          <div class="logo">
+            <span class="logo-icon">🛡️</span>
+            <span class="logo-text">AISim AdBlocker v2.0.0</span>
+          </div>
+        </div>
+        <div class="error-state">
+          <div class="error-icon">⚠️</div>
+          <div class="error-message">Extension initialization failed</div>
+          <button id="retryInit" class="retry-button">Retry</button>
+        </div>
+      </div>
+    `;
     
-    // Auto-refresh stats every 2 seconds
-    setInterval(() => this.loadStats(), 2000);
+    document.getElementById('retryInit').addEventListener('click', () => {
+      this.retryCount = 0;
+      this.isInitialized = false;
+      this.init();
+    });
   }
 
   async loadCurrentTab() {
@@ -69,7 +122,7 @@ class AdBlockerPopup {
         <div class="header">
           <div class="logo">
             <span class="logo-icon">🛡️</span>
-            <span class="logo-text">AISim AdBlocker</span>
+            <span class="logo-text">AISim AdBlocker v2.0.0</span>
           </div>
           <button id="toggleEnabled" class="toggle-button">
             <span class="toggle-icon">⚡</span>
@@ -271,9 +324,21 @@ class AdBlockerPopup {
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
   }
+
+  destroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
 }
 
 // Initialize popup
 document.addEventListener('DOMContentLoaded', () => {
-  new AdBlockerPopup();
+  const popup = new AdBlockerPopup();
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    popup.destroy();
+  });
 });

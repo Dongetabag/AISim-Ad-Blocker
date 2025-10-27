@@ -1,5 +1,6 @@
-// AISim AdBlocker - Content Script
+// AISim AdBlocker v2.0.0 - Content Script
 // DOM-level ad blocking for elements that bypass network blocking
+// Enhanced stability and performance
 
 (function() {
   'use strict';
@@ -9,6 +10,10 @@
       this.blockedElements = new Set();
       this.observer = null;
       this.isEnabled = true;
+      this.scanTimeout = null;
+      this.retryCount = 0;
+      this.maxRetries = 3;
+      this.isInitialized = false;
       
       // Common ad selectors
       this.adSelectors = [
@@ -50,29 +55,57 @@
     }
 
     async init() {
-      // Check if enabled
-      const response = await chrome.runtime.sendMessage({ 
-        type: 'GET_SETTINGS' 
-      });
-      
-      if (response && response.settings) {
-        this.isEnabled = response.settings.isEnabled;
-      }
-
-      if (!this.isEnabled) {
+      if (this.isInitialized) {
         return;
       }
 
-      // Initial scan
-      this.scanAndBlock();
-      
-      // Set up mutation observer for dynamic content
-      this.setupObserver();
-      
-      // Inject additional blocking script
-      this.injectBlockingScript();
-      
-      console.log('AISim AdBlocker: Content script initialized');
+      try {
+        // Check if enabled with retry logic
+        const response = await this.getSettingsWithRetry();
+        
+        if (response && response.settings) {
+          this.isEnabled = response.settings.isEnabled;
+        }
+
+        if (!this.isEnabled) {
+          console.log('AISim AdBlocker: Content script disabled');
+          return;
+        }
+
+        // Initial scan with error handling
+        this.scanAndBlock();
+        
+        // Set up mutation observer for dynamic content
+        this.setupObserver();
+        
+        // Inject additional blocking script
+        this.injectBlockingScript();
+        
+        this.isInitialized = true;
+        console.log('AISim AdBlocker v2.0.0: Content script initialized');
+      } catch (error) {
+        console.error('AISim AdBlocker: Content script initialization failed:', error);
+        this.retryCount++;
+        
+        if (this.retryCount < this.maxRetries) {
+          setTimeout(() => {
+            this.init();
+          }, 1000 * this.retryCount);
+        }
+      }
+    }
+
+    async getSettingsWithRetry(maxRetries = 3) {
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          return await chrome.runtime.sendMessage({ 
+            type: 'GET_SETTINGS' 
+          });
+        } catch (error) {
+          if (i === maxRetries - 1) throw error;
+          await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
+        }
+      }
     }
 
     scanAndBlock() {

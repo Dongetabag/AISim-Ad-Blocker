@@ -5,6 +5,47 @@ All notable changes to AISim AdBlocker will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-10-27
+
+### Enhanced Stability & Performance
+- 🔧 **Improved Error Handling**: Comprehensive error handling with retry logic
+- 🛡️ **Initialization Robustness**: Prevents multiple initialization attempts
+- 🔄 **Auto-Recovery**: Automatic retry mechanisms for failed operations
+- 📊 **Health Monitoring**: Built-in health check system with error counting
+- ⚡ **Performance Optimization**: Reduced memory leaks and improved cleanup
+- 🎯 **Message Validation**: Enhanced message validation and error responses
+- 🔒 **Graceful Degradation**: Fallback states for failed initialization
+
+### New Features
+- 🏥 **Health Check API**: New HEALTH_CHECK message type for monitoring
+- 🔄 **Retry Logic**: Automatic retry for failed operations (3 attempts)
+- ⚠️ **Error State UI**: User-friendly error display with retry options
+- 🧹 **Memory Management**: Proper cleanup of intervals and observers
+- 📈 **Error Tracking**: Error count tracking and reporting
+- 🔧 **Enhanced Validation**: Input validation for all message types
+
+### Stability Improvements
+- **Service Worker**: Added initialization promise to prevent race conditions
+- **Content Script**: Enhanced retry logic and error handling
+- **Popup Interface**: Improved error states and recovery mechanisms
+- **Message Handling**: Better validation and error responses
+- **Resource Cleanup**: Proper cleanup of timers and observers
+
+### Bug Fixes
+- Fixed potential memory leaks in popup refresh intervals
+- Fixed race conditions in initialization
+- Fixed error handling in content script
+- Fixed message validation issues
+- Fixed cleanup on popup close
+
+### Performance
+- Reduced initialization time with better error handling
+- Improved memory usage with proper cleanup
+- Enhanced stability under high load
+- Better error recovery mechanisms
+
+---
+
 ## [1.0.0] - 2025-10-27
 
 ### Added

@@ -1,5 +1,6 @@
-// AISim AdBlocker - Background Service Worker
+// AISim AdBlocker v2.0.0 - Background Service Worker
 // High-performance ad blocking with declarativeNetRequest API
+// Enhanced stability and error handling
 
 import { FilterManager } from './filter-manager.js';
 import { StatsManager } from './stats-manager.js';
@@ -12,26 +13,66 @@ class AdBlockerBackground {
     this.storageManager = new StorageManager();
     this.isEnabled = true;
     this.whitelistedDomains = new Set();
+    this.initializationPromise = null;
+    this.errorCount = 0;
+    this.maxErrors = 10;
     
     this.init();
   }
 
   async init() {
-    console.log('AISim AdBlocker: Initializing...');
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
     
-    // Load settings from storage
-    await this.loadSettings();
-    
-    // Initialize filter lists
-    await this.filterManager.initialize();
-    
-    // Set up listeners
-    this.setupListeners();
-    
-    // Update filter lists on alarm
-    chrome.alarms.create('updateFilters', { periodInMinutes: 1440 }); // Daily
-    
-    console.log('AISim AdBlocker: Ready');
+    this.initializationPromise = this._doInit();
+    return this.initializationPromise;
+  }
+
+  async _doInit() {
+    try {
+      console.log('AISim AdBlocker v2.0.0: Initializing...');
+      
+      // Load settings from storage with error handling
+      await this.loadSettings();
+      
+      // Initialize filter lists with retry logic
+      await this.initializeFiltersWithRetry();
+      
+      // Set up listeners with error handling
+      this.setupListeners();
+      
+      // Update filter lists on alarm
+      chrome.alarms.create('updateFilters', { periodInMinutes: 1440 }); // Daily
+      
+      console.log('AISim AdBlocker v2.0.0: Ready');
+    } catch (error) {
+      console.error('AISim AdBlocker: Initialization failed:', error);
+      this.errorCount++;
+      
+      if (this.errorCount < this.maxErrors) {
+        // Retry initialization after a delay
+        setTimeout(() => {
+          this.initializationPromise = null;
+          this.init();
+        }, 5000);
+      } else {
+        console.error('AISim AdBlocker: Max initialization retries exceeded');
+      }
+    }
+  }
+
+  async initializeFiltersWithRetry(maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        await this.filterManager.initialize();
+        return;
+      } catch (error) {
+        console.warn(`AISim AdBlocker: Filter initialization attempt ${i + 1} failed:`, error);
+        if (i === maxRetries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+    }
   }
 
   async loadSettings() {
@@ -108,6 +149,15 @@ class AdBlockerBackground {
 
   async handleMessage(message, sender, sendResponse) {
     try {
+      // Validate message structure
+      if (!message || typeof message.type !== 'string') {
+        sendResponse({ success: false, error: 'Invalid message format' });
+        return true;
+      }
+
+      // Ensure initialization is complete
+      await this.init();
+
       switch (message.type) {
         case 'GET_STATS':
           const stats = await this.statsManager.getStats(message.tabId);
@@ -120,16 +170,28 @@ class AdBlockerBackground {
           break;
 
         case 'TOGGLE_WHITELIST':
+          if (!message.domain) {
+            sendResponse({ success: false, error: 'Domain is required' });
+            return true;
+          }
           await this.toggleWhitelist(message.domain);
           sendResponse({ success: true, isWhitelisted: this.isWhitelisted(message.domain) });
           break;
 
         case 'ADD_CUSTOM_FILTER':
+          if (!message.filter) {
+            sendResponse({ success: false, error: 'Filter is required' });
+            return true;
+          }
           await this.filterManager.addCustomFilter(message.filter);
           sendResponse({ success: true });
           break;
 
         case 'REMOVE_CUSTOM_FILTER':
+          if (!message.filterId) {
+            sendResponse({ success: false, error: 'Filter ID is required' });
+            return true;
+          }
           await this.filterManager.removeCustomFilter(message.filterId);
           sendResponse({ success: true });
           break;
@@ -151,12 +213,26 @@ class AdBlockerBackground {
           });
           break;
 
+        case 'HEALTH_CHECK':
+          sendResponse({ 
+            success: true, 
+            status: 'healthy',
+            version: '2.0.0',
+            errorCount: this.errorCount
+          });
+          break;
+
         default:
           sendResponse({ success: false, error: 'Unknown message type' });
       }
     } catch (error) {
       console.error('Error handling message:', error);
-      sendResponse({ success: false, error: error.message });
+      this.errorCount++;
+      sendResponse({ 
+        success: false, 
+        error: error.message,
+        errorCount: this.errorCount
+      });
     }
 
     return true; // Keep message channel open for async response
