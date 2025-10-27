@@ -1,0 +1,20 @@
+IMPORTANT: Icon PNG files need to be generated!
+
+The icon.svg file is provided, but PNG files are required for the extension to work properly.
+
+To generate PNG icons:
+1. Run: npm install
+2. Run: npm run generate-icons
+
+This will create all required PNG files:
+- icon16.png
+- icon48.png  
+- icon128.png
+- icon16-disabled.png
+- icon48-disabled.png
+- icon128-disabled.png
+
+Alternatively, you can manually convert icon.svg to PNG using:
+- Online tools (e.g., cloudconvert.com)
+- ImageMagick: convert icon.svg -resize 128x128 icon128.png
+- Any image editor (GIMP, Photoshop, etc.)

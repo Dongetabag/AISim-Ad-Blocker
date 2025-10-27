@@ -1,0 +1,33 @@
+{
+  "name": "aisim-adblocker",
+  "version": "1.0.0",
+  "description": "Advanced ad blocker with tracker blocking, custom filters, and high performance",
+  "scripts": {
+    "dev": "npm run watch",
+    "watch": "node scripts/watch.js",
+    "build": "node scripts/build.js",
+    "pack": "node scripts/pack.js",
+    "test": "echo \"Tests not yet implemented\" && exit 0",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{js,json,css,html}\"",
+    "generate-icons": "node scripts/generate-icons.js"
+  },
+  "keywords": [
+    "adblocker",
+    "chrome-extension",
+    "privacy",
+    "tracker-blocking"
+  ],
+  "author": "AISim",
+  "license": "MIT",
+  "devDependencies": {
+    "archiver": "^6.0.1",
+    "chokidar": "^3.5.3",
+    "eslint": "^8.52.0",
+    "prettier": "^3.0.3",
+    "sharp": "^0.32.6"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

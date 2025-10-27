@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  aisim-adblocker-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aisim-adblocker-dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    stdin_open: true
+    tty: true
+
+  # Build service for creating production builds
+  aisim-adblocker-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aisim-adblocker-build
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run build
+    profiles:
+      - build

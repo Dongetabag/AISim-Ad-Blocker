@@ -1,0 +1,90 @@
+[
+  {
+    "id": 101,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||google-analytics.com^",
+      "resourceTypes": ["script", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 102,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "/analytics.",
+      "resourceTypes": ["script", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 103,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "/tracking.",
+      "resourceTypes": ["script", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 104,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "/tracker.",
+      "resourceTypes": ["script", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 105,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "/telemetry.",
+      "resourceTypes": ["script", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 106,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "/beacon",
+      "resourceTypes": ["script", "xmlhttprequest", "ping", "other"]
+    }
+  },
+  {
+    "id": 107,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "/pixel",
+      "resourceTypes": ["image", "xmlhttprequest", "other"]
+    }
+  },
+  {
+    "id": 108,
+    "priority": 1,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "||facebook.com/tr",
+      "resourceTypes": ["script", "xmlhttprequest", "other"]
+    }
+  }
+]

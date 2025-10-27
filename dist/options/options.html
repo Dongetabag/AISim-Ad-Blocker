@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AISim AdBlocker - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🛡️</span>
+        <h1>AISim AdBlocker Settings</h1>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- Filter Lists -->
+      <section class="card">
+        <h2>Filter Lists</h2>
+        <p class="description">Manage your ad blocking filter lists</p>
+        
+        <div class="filter-list">
+          <div class="filter-item">
+            <div class="filter-info">
+              <span class="filter-name">EasyList</span>
+              <span class="filter-desc">Primary ad blocking filter</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="easylist-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="filter-item">
+            <div class="filter-info">
+              <span class="filter-name">EasyPrivacy</span>
+              <span class="filter-desc">Tracking and analytics blocking</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="easyprivacy-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <button id="updateFilters" class="button primary">Update All Filter Lists</button>
+        <div id="updateStatus" class="status-message"></div>
+      </section>
+
+      <!-- Whitelist -->
+      <section class="card">
+        <h2>Whitelisted Domains</h2>
+        <p class="description">Domains where ad blocking is disabled</p>
+        
+        <div class="input-group">
+          <input type="text" id="whitelistInput" placeholder="example.com">
+          <button id="addWhitelist" class="button">Add Domain</button>
+        </div>
+
+        <div id="whitelistContainer" class="list-container">
+          <!-- Whitelist items will be inserted here -->
+        </div>
+      </section>
+
+      <!-- Custom Filters -->
+      <section class="card">
+        <h2>Custom Filters</h2>
+        <p class="description">Add your own custom blocking rules</p>
+        
+        <div class="input-group">
+          <input type="text" id="customFilterInput" placeholder="||example.com/ads^">
+          <button id="addCustomFilter" class="button">Add Filter</button>
+        </div>
+
+        <div id="customFiltersContainer" class="list-container">
+          <!-- Custom filters will be inserted here -->
+        </div>
+
+        <div class="help-text">
+          <strong>Filter Syntax Examples:</strong>
+          <ul>
+            <li><code>||example.com/ads^</code> - Block ads from example.com</li>
+            <li><code>##.advertisement</code> - Hide elements with class "advertisement"</li>
+            <li><code>example.com##.banner</code> - Hide banners on example.com</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Statistics -->
+      <section class="card">
+        <h2>Statistics</h2>
+        <p class="description">Your ad blocking performance</p>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalAdsBlocked">0</div>
+            <div class="stat-label">Total Ads Blocked</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalTrackersBlocked">0</div>
+            <div class="stat-label">Total Trackers Blocked</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalBandwidthSaved">0 MB</div>
+            <div class="stat-label">Bandwidth Saved</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalPagesOptimized">0</div>
+            <div class="stat-label">Pages Optimized</div>
+          </div>
+        </div>
+
+        <button id="resetStats" class="button danger">Reset Statistics</button>
+      </section>
+
+      <!-- About -->
+      <section class="card">
+        <h2>About</h2>
+        <p class="description">AISim AdBlocker v1.0.0</p>
+        <p>An advanced, high-performance ad blocker built with privacy in mind.</p>
+        <div class="button-group">
+          <a href="https://github.com/yourusername/aisim-adblocker" target="_blank" class="button">
+            GitHub Repository
+          </a>
+          <a href="https://github.com/yourusername/aisim-adblocker/issues" target="_blank" class="button">
+            Report Issue
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
