@@ -11,6 +11,7 @@ class OptionsPage {
 
   async init() {
     await this.loadSettings();
+    await this.loadCustomFilters();
     await this.loadStats();
     this.attachEventListeners();
   }
@@ -20,7 +21,7 @@ class OptionsPage {
       const response = await chrome.runtime.sendMessage({
         type: 'GET_SETTINGS'
       });
-      
+
       if (response && response.success) {
         this.whitelist = response.settings.whitelistedDomains || [];
         this.renderWhitelist();
@@ -29,13 +30,28 @@ class OptionsPage {
       const whitelistResponse = await chrome.runtime.sendMessage({
         type: 'GET_WHITELIST'
       });
-      
+
       if (whitelistResponse && whitelistResponse.success) {
         this.whitelist = whitelistResponse.whitelist || [];
         this.renderWhitelist();
       }
     } catch (error) {
       console.error('Error loading settings:', error);
+    }
+  }
+
+  async loadCustomFilters() {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'GET_CUSTOM_FILTERS'
+      });
+
+      if (response && response.success) {
+        this.customFilters = response.filters || [];
+        this.renderCustomFilters();
+      }
+    } catch (error) {
+      console.error('Error loading custom filters:', error);
     }
   }
 
@@ -80,24 +96,33 @@ class OptionsPage {
 
   renderCustomFilters() {
     const container = document.getElementById('customFiltersContainer');
-    
+
+    if (!container) {
+      console.warn('Custom filters container not found');
+      return;
+    }
+
     if (this.customFilters.length === 0) {
       container.innerHTML = '<div class="empty-state">No custom filters</div>';
       return;
     }
 
-    container.innerHTML = this.customFilters.map(filter => `
-      <div class="list-item" data-filter="${filter}">
-        <code class="list-item-text">${filter}</code>
-        <button class="remove-button" data-filter="${filter}">✕</button>
-      </div>
-    `).join('');
+    container.innerHTML = this.customFilters.map(filterObj => {
+      const filterText = filterObj.filter || filterObj;
+      const filterId = filterObj.id || filterText;
+      return `
+        <div class="list-item" data-filter-id="${filterId}">
+          <code class="list-item-text">${filterText}</code>
+          <button class="remove-button" data-filter-id="${filterId}">✕</button>
+        </div>
+      `;
+    }).join('');
 
     // Attach remove listeners
     container.querySelectorAll('.remove-button').forEach(button => {
       button.addEventListener('click', (e) => {
-        const filter = e.target.getAttribute('data-filter');
-        this.removeCustomFilter(filter);
+        const filterId = e.target.getAttribute('data-filter-id');
+        this.removeCustomFilter(filterId);
       });
     });
   }
@@ -115,9 +140,9 @@ class OptionsPage {
 
   attachEventListeners() {
     // Add to whitelist
-    document.getElementById('addWhitelist').addEventListener('click', 
+    document.getElementById('addWhitelist').addEventListener('click',
       () => this.addToWhitelist());
-    
+
     document.getElementById('whitelistInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         this.addToWhitelist();
@@ -125,21 +150,30 @@ class OptionsPage {
     });
 
     // Add custom filter
-    document.getElementById('addCustomFilter').addEventListener('click', 
+    document.getElementById('addCustomFilter').addEventListener('click',
       () => this.addCustomFilter());
-    
+
     document.getElementById('customFilterInput').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         this.addCustomFilter();
       }
     });
 
+    // Filter list toggles
+    document.getElementById('easylist-toggle').addEventListener('change', (e) => {
+      this.toggleFilterList('easylist', e.target.checked);
+    });
+
+    document.getElementById('easyprivacy-toggle').addEventListener('change', (e) => {
+      this.toggleFilterList('easyprivacy', e.target.checked);
+    });
+
     // Update filters
-    document.getElementById('updateFilters').addEventListener('click', 
+    document.getElementById('updateFilters').addEventListener('click',
       () => this.updateFilters());
 
     // Reset stats
-    document.getElementById('resetStats').addEventListener('click', 
+    document.getElementById('resetStats').addEventListener('click',
       () => this.resetStats());
   }
 
@@ -196,7 +230,7 @@ class OptionsPage {
   async addCustomFilter() {
     const input = document.getElementById('customFilterInput');
     const filter = input.value.trim();
-    
+
     if (!filter) {
       this.showStatus('Please enter a filter rule', 'error');
       return;
@@ -207,10 +241,10 @@ class OptionsPage {
         type: 'ADD_CUSTOM_FILTER',
         filter: filter
       });
-      
+
       if (response && response.success) {
-        this.customFilters.push(filter);
-        this.renderCustomFilters();
+        // Reload the custom filters from storage to get the correct ID
+        await this.loadCustomFilters();
         input.value = '';
         this.showStatus('Custom filter added', 'success');
       }
@@ -220,16 +254,16 @@ class OptionsPage {
     }
   }
 
-  async removeCustomFilter(filter) {
+  async removeCustomFilter(filterId) {
     try {
       const response = await chrome.runtime.sendMessage({
         type: 'REMOVE_CUSTOM_FILTER',
-        filterId: filter
+        filterId: filterId
       });
-      
+
       if (response && response.success) {
-        this.customFilters = this.customFilters.filter(f => f !== filter);
-        this.renderCustomFilters();
+        // Reload the custom filters from storage
+        await this.loadCustomFilters();
         this.showStatus('Custom filter removed', 'success');
       }
     } catch (error) {
@@ -238,18 +272,44 @@ class OptionsPage {
     }
   }
 
+  async toggleFilterList(listId, enabled) {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'TOGGLE_FILTER_LIST',
+        listId: listId,
+        enabled: enabled
+      });
+
+      if (response && response.success) {
+        this.showStatus(
+          `${listId} ${enabled ? 'enabled' : 'disabled'}`,
+          'success'
+        );
+      } else {
+        this.showStatus('Error toggling filter list', 'error');
+        // Revert the toggle
+        document.getElementById(`${listId}-toggle`).checked = !enabled;
+      }
+    } catch (error) {
+      console.error('Error toggling filter list:', error);
+      this.showStatus('Error toggling filter list', 'error');
+      // Revert the toggle
+      document.getElementById(`${listId}-toggle`).checked = !enabled;
+    }
+  }
+
   async updateFilters() {
     const button = document.getElementById('updateFilters');
     const statusDiv = document.getElementById('updateStatus');
-    
+
     button.disabled = true;
     button.textContent = 'Updating...';
-    
+
     try {
       const response = await chrome.runtime.sendMessage({
         type: 'UPDATE_FILTERS'
       });
-      
+
       if (response && response.success) {
         statusDiv.textContent = 'Filter lists updated successfully!';
         statusDiv.className = 'status-message success';
@@ -262,7 +322,7 @@ class OptionsPage {
       statusDiv.textContent = 'Error updating filter lists';
       statusDiv.className = 'status-message error';
     }
-    
+
     setTimeout(() => {
       button.disabled = false;
       button.textContent = 'Update All Filter Lists';

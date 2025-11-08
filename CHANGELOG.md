@@ -5,6 +5,37 @@ All notable changes to AISim AdBlocker will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-11-08
+
+### Added
+- Custom filter persistence and loading in options page
+- Filter list toggle functionality (enable/disable EasyList and EasyPrivacy)
+- Enhanced ABP filter parser with support for:
+  - Exception rules (@@)
+  - Filter options ($script, $image, $third-party, $domain, etc.)
+  - Domain anchors (||)
+  - URL anchors (|)
+  - Separator characters (^)
+  - Resource type filtering
+  - Domain-specific rules
+- GET_CUSTOM_FILTERS message handler for retrieving custom filters
+- TOGGLE_FILTER_LIST message handler for enabling/disabling filter lists
+- Improved filter list update mechanism with ruleset verification
+- ABP filter list converter (convertABPListToRules) for future implementations
+
+### Fixed
+- Custom filters now properly load and display in options page
+- Custom filter removal now works correctly with filter IDs
+- Filter list toggles now properly enable/disable rulesets
+
+### Improved
+- Better error handling throughout filter management
+- Enhanced filter parsing with proper option handling
+- More robust custom filter storage (stores both filter text and compiled rules)
+- Filter manager now validates and ensures rulesets are enabled on update
+
+---
+
 ## [2.0.0] - 2025-10-27
 
 ### Enhanced Stability & Performance

@@ -207,10 +207,27 @@ class AdBlockerBackground {
           break;
 
         case 'GET_WHITELIST':
-          sendResponse({ 
-            success: true, 
-            whitelist: Array.from(this.whitelistedDomains) 
+          sendResponse({
+            success: true,
+            whitelist: Array.from(this.whitelistedDomains)
           });
+          break;
+
+        case 'GET_CUSTOM_FILTERS':
+          const customFilters = await this.filterManager.getCustomFilters();
+          sendResponse({
+            success: true,
+            filters: customFilters
+          });
+          break;
+
+        case 'TOGGLE_FILTER_LIST':
+          if (!message.listId) {
+            sendResponse({ success: false, error: 'List ID is required' });
+            return true;
+          }
+          await this.filterManager.toggleFilterList(message.listId, message.enabled);
+          sendResponse({ success: true });
           break;
 
         case 'HEALTH_CHECK':
